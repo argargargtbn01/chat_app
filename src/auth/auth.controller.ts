@@ -1,42 +1,17 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './users/dto/create-user.dto';
-import { UpdateAuthDto } from './users/dto/update-user.dto';
+import { UseGuards } from '@nestjs/common';
+import { FirebaseAuthGuard } from './users/guards/firebase-auth.guard';
+import { CurrentUser } from 'src/shared/base/decorators/current-user.decorator';
+import { User } from './users/models/user.schema';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.authService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+  @UseGuards(FirebaseAuthGuard)
+  @Get('authenticate')
+  async authen(@CurrentUser() user: User) {
+    return await this.authService.authenticate(user);
   }
 }
